@@ -72,8 +72,8 @@ async fn convert_file(input_file: impl AsRef<Path>, output_file: impl AsRef<Path
     let file_future = File::create(output_file);
 
     let convert_future = match format {
-        TxrFormat::Some5 => convert_rgba4444(source_image),
-        TxrFormat::Some2 => convert_rgb565(source_image),
+        TxrFormat::Rgba4444 => convert_rgba4444(source_image),
+        TxrFormat::Rgb565 => convert_rgb565(source_image),
         TxrFormat::Some8 => convert_rgb565(source_image), // Not clear how to transform, but anyway...
         _ => panic!()
     };
@@ -190,12 +190,13 @@ enum ExtensionTag {
 }
 
 enum TxrFormat {
-    Some2,
-    Some3,
-    Some5,
-    Some6,
-    Some7,
-    Some8, // Used by bumpcoord
+    // The values are from original
+    Rgb565 = 2,
+    Some3 = 3,
+    Rgba4444 = 5,
+    Some6 = 6,
+    Some7 = 7,
+    Some8 = 8, // Used by bumpcoord
 }
 
 
@@ -226,8 +227,8 @@ fn obtain_format_from_extension(input: &[u8]) -> IResult<&[u8], TxrFormat> {
                 |tuple| {
                     Some(match tuple {
                         (31744, 992, 31, 0) => TxrFormat::Some3,
-                        (63488, 2016, 31, 0) => TxrFormat::Some2,
-                        (3840, 240, 15, 61440) => TxrFormat::Some5,
+                        (63488, 2016, 31, 0) => TxrFormat::Rgb565,
+                        (3840, 240, 15, 61440) => TxrFormat::Rgba4444,
                         (16711680, 65280, 255, 0) => TxrFormat::Some6,
                         (16711680, 65280, 255, _) => TxrFormat::Some7,
                         (_, _, _, _) => TxrFormat::Some8,
