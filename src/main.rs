@@ -75,6 +75,7 @@ async fn convert_file(input_file: impl AsRef<Path>, output_file: impl AsRef<Path
     let convert_future = match format {
         TxrFormat::Rgba4444 => convert(source_image, ColorType::Rgba, rgb4444_to_8888),
         TxrFormat::Rgb565 => convert(source_image, ColorType::Rgb, rgb565_to_888),
+        TxrFormat::Rgb555 => convert(source_image, ColorType::Rgb, rgb555_to_888),
         TxrFormat::U8V8Maybe => convert(source_image, ColorType::Rgb, rgb88_to_888), // Not clear how to transform, but anyway...
         _ => panic!()
     };
@@ -167,7 +168,7 @@ enum ExtensionTag {
 enum TxrFormat {
     // The values are from original
     Rgb565 = 2,
-    Some3 = 3,
+    Rgb555 = 3,
     Rgba4444 = 5,
     Some6 = 6,
     Some7 = 7,
@@ -201,7 +202,7 @@ fn obtain_format_from_extension(input: &[u8]) -> IResult<&[u8], TxrFormat> {
                 },
                 |tuple| {
                     Some(match tuple {
-                        (31744, 992, 31, 0) => TxrFormat::Some3,
+                        (31744, 992, 31, 0) => TxrFormat::Rgb555,
                         (63488, 2016, 31, 0) => TxrFormat::Rgb565,
                         (3840, 240, 15, 61440) => TxrFormat::Rgba4444,
                         (16711680, 65280, 255, 0) => TxrFormat::Some6,
@@ -250,6 +251,13 @@ fn rgb565_to_888(pixel: RawPixel) -> [u8; 3] {
     let b: u8 = ((pixel.color << 3) & 0b1111_1000) as u8;
     let g: u8 = ((pixel.color >> 3) & 0b1111_1100) as u8;
     let r: u8 = ((pixel.color >> 8) & 0b1111_1000) as u8;
+    [r, g, b]
+}
+
+fn rgb555_to_888(pixel: RawPixel) -> [u8; 3] {
+    let b: u8 = ((pixel.color << 3) & 0b1111_1000) as u8;
+    let g: u8 = ((pixel.color >> 2) & 0b1111_1000) as u8;
+    let r: u8 = ((pixel.color >> 7) & 0b1111_1000) as u8;
     [r, g, b]
 }
 
