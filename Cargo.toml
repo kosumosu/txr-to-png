@@ -1,5 +1,5 @@
 [package]
-name = "tga565to888"
+name = "txr-to-png"
 version = "0.1.0"
 edition = "2021"
 
@@ -11,4 +11,3 @@ nom = { version = "7.1.1", default-features = false }
 png = "0.17.16"
 regex = "1.11.1"
 walkdir = "2.5.0"
-anyhow = "1.0.99"
